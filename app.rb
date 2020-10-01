@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 # frozen_string_literal: true
 
 require 'json'
@@ -47,7 +48,6 @@ if __FILE__ == $PROGRAM_NAME
   ENV['SAKE_TELEGRAM_CHANNEL_JSON'].tap do |e|
     telegram_channel = JSON.parse(e) if e
   end
-  puts telegram_channel
   unless telegram_api_token
     $LOG.fatal 'No `SAKE_TELEGRAM_API_TOKEN` found in ENV.'
     abort
