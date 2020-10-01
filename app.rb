@@ -10,7 +10,7 @@ require 'yaml'
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.854.0 Safari/535.2'
 
-$LOG = Logger.new(STDOUT)
+$LOG = Logger.new '/proc/1/fd/1'
 $LOG.level = Logger::INFO
 
 def fetch_tweets(user)
