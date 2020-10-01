@@ -27,8 +27,6 @@ def filter_tweets(tweets, tags)
 end
 
 def post_telegram(api_token, chat_id, text)
-  $LOG.info 'post'
-  return
   resp = Faraday.post("https://api.telegram.org/bot#{api_token}/sendMessage", {
     chat_id: chat_id,
     text: text,
@@ -60,7 +58,6 @@ if __FILE__ == $PROGRAM_NAME
     end
     filtered_tweets = filter_tweets(tweets, config['twitter_tags'])
     if filtered_tweets
-      $LOG.info 'OK to test'
       new_tweet = filtered_tweets[0]
       if last_tweet != new_tweet
         post_telegram(telegram_api_token, config['telegram_channel'], new_tweet)
