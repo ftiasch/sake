@@ -43,6 +43,11 @@ end
 if __FILE__ == $PROGRAM_NAME
   config = YAML.safe_load File.open('config.yaml').read
   telegram_api_token = ENV['SAKE_TELEGRAM_API_TOKEN']
+  telegram_channel = config['telegram_channel']
+  ENV['SAKE_TELEGRAM_CHANNEL_JSON'].tap do |e|
+    telegram_channel = JSON.parse(e) if e
+  end
+  puts telegram_channel
   unless telegram_api_token
     $LOG.fatal 'No `SAKE_TELEGRAM_API_TOKEN` found in ENV.'
     abort
@@ -60,7 +65,7 @@ if __FILE__ == $PROGRAM_NAME
     if filtered_tweets
       new_tweet = filtered_tweets[0]
       if last_tweet != new_tweet
-        post_telegram(telegram_api_token, config['telegram_channel'], new_tweet)
+        post_telegram(telegram_api_token, telegram_channel, new_tweet)
         last_tweet = new_tweet
       else
         $LOG.info "Already posted. #{new_tweet.split.join('')[..32]}..."
