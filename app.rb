@@ -47,7 +47,7 @@ if __FILE__ == $PROGRAM_NAME
   telegram_api_token = ENV['SAKE_TELEGRAM_API_TOKEN']
   telegram_channel = json_parse(ENV['SAKE_TELEGRAM_CHANNEL_JSON']) || config['telegram_channel']
   unless telegram_api_token
-    'No `SAKE_TELEGRAM_API_TOKEN` found in ENV.'
+    logger.fatal 'No `SAKE_TELEGRAM_API_TOKEN` found in ENV.'
     abort
   end
   healthchecks_url = ENV['SAKE_HEALTHCHECKS_URL']
