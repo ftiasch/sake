@@ -73,6 +73,6 @@ if __FILE__ == $PROGRAM_NAME
       end
     end
     Faraday.get healthchecks_url if healthchecks_url
-    sleep 1800 # 0.5 hours
+    sleep 900 # 15 minutes
   end
 end
