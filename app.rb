@@ -44,12 +44,7 @@ def post_telegram(api_token, chat_id, text)
     chat_id: chat_id,
     text: text
   }.to_json, 'Content-Type' => 'application/json')
-  result = JSON.parse resp.body
-  if result['ok']
-    $LOG.info 'Success to post.'
-  else
-    fatal "Failed to post. #{resp.body}"
-  end
+  JSON.parse resp.body
 end
 
 if __FILE__ == $PROGRAM_NAME
@@ -68,8 +63,13 @@ if __FILE__ == $PROGRAM_NAME
     else
       new_tweet = filtered_tweets[0]
       if last_tweet != new_tweet
-        post_telegram(telegram_api_token, telegram_channel, new_tweet)
-        last_tweet = new_tweet
+        result = post_telegram(telegram_api_token, telegram_channel, new_tweet)
+        if result['ok']
+          $LOG.info 'Success to post.'
+          last_tweet = new_tweet
+        else
+          fatal "Failed to post. #{resp.body}"
+        end
       else
         $LOG.info "Already posted. #{new_tweet.split.join('')}"
       end
