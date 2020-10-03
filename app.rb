@@ -62,9 +62,10 @@ if __FILE__ == $PROGRAM_NAME
   last_tweet = nil
   loop do
     tweets = fetch_tweets(config['twitter_user'])
-    fatal 'Fetch error, no tweets' unless tweets
     filtered_tweets = filter_tweets(tweets, config['twitter_tags'])
-    if filtered_tweets
+    if filtered_tweets.empty?
+      $LOG.info 'No tweets.'
+    else
       new_tweet = filtered_tweets[0]
       if last_tweet != new_tweet
         post_telegram(telegram_api_token, telegram_channel, new_tweet)
@@ -72,8 +73,6 @@ if __FILE__ == $PROGRAM_NAME
       else
         $LOG.info "Already posted. #{new_tweet.split.join('')}"
       end
-    else
-      $LOG.info 'No new tweets.'
     end
     Faraday.get healthchecks_url if healthchecks_url
     sleep 1800 # 0.5 hours
