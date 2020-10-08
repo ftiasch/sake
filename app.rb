@@ -3,9 +3,8 @@
 
 require 'json'
 require 'logger'
-require 'faraday'
+require 'http'
 require 'nokogiri'
-require 'open-uri'
 require 'yaml'
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.854.0 Safari/535.2'
@@ -15,8 +14,7 @@ def json_parse(data)
 end
 
 def fetch_tweets(user)
-  doc = Nokogiri::HTML(URI.open("http://twitter.com/#{user}", 'User-Agent' => USER_AGENT))
-  doc.css('.tweet-container').map(&:text).map(&:strip)
+  Nokogiri::HTML(HTTP[user_agent: USER_AGENT].follow.get("https://twitter.com/#{user}").to_s).css('.tweet-container').map(&:text).map(&:strip)
 end
 
 def filter_tweets(tweets, tags)
@@ -28,11 +26,10 @@ def filter_tweets(tweets, tags)
 end
 
 def post_telegram(api_token, chat_id, text)
-  resp = Faraday.post("https://api.telegram.org/bot#{api_token}/sendMessage", {
-    chat_id: chat_id,
-    text: text
-  }.to_json, 'Content-Type' => 'application/json')
-  JSON.parse resp.body
+  JSON.parse(HTTP.post("https://api.telegram.org/bot#{api_token}/sendMessage", json: {
+                         chat_id: chat_id,
+                         text: text
+                       }).to_s)
 end
 
 if __FILE__ == $PROGRAM_NAME
@@ -72,7 +69,7 @@ if __FILE__ == $PROGRAM_NAME
         logger.info "Already posted. #{new_tweet.split.join('')}"
       end
     end
-    Faraday.get healthchecks_url if healthchecks_url
+    HTTP.get healthchecks_url if healthchecks_url
     sleep 900 # 15 minutes
   end
 end
