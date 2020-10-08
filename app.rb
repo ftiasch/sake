@@ -17,7 +17,7 @@ def fetch_tweets(user)
   html = HTTP[user_agent: USER_AGENT].follow.get("https://twitter.com/#{user}").to_s
   Nokogiri::HTML(html).css('.tweet-container').map(&:text).map(&:strip)
 rescue StandardError
-  ''
+  []
 end
 
 def filter_tweets(tweets, tags)
