@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-gem 'faraday'
+gem 'http', '~> 4.4.1'
 gem 'nokogiri', '~> 1.10.10'
