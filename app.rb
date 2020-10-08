@@ -14,7 +14,10 @@ def json_parse(data)
 end
 
 def fetch_tweets(user)
-  Nokogiri::HTML(HTTP[user_agent: USER_AGENT].follow.get("https://twitter.com/#{user}").to_s).css('.tweet-container').map(&:text).map(&:strip)
+  html = HTTP[user_agent: USER_AGENT].follow.get("https://twitter.com/#{user}").to_s
+  Nokogiri::HTML(html).css('.tweet-container').map(&:text).map(&:strip)
+rescue StandardError
+  ''
 end
 
 def filter_tweets(tweets, tags)
@@ -29,7 +32,17 @@ def post_telegram(api_token, chat_id, text)
   JSON.parse(HTTP.post("https://api.telegram.org/bot#{api_token}/sendMessage", json: {
                          chat_id: chat_id,
                          text: text
-                       }).to_s)
+                       }).to_s)['ok']
+rescue StandardError
+  false
+end
+
+def healthcheck(url)
+  return true unless url
+
+  HTTP.get url
+rescue StandardError
+  false
 end
 
 if __FILE__ == $PROGRAM_NAME
@@ -58,8 +71,7 @@ if __FILE__ == $PROGRAM_NAME
     else
       new_tweet = filtered_tweets[0]
       if last_tweet != new_tweet
-        result = post_telegram(telegram_api_token, telegram_channel, new_tweet)
-        if result['ok']
+        if post_telegram(telegram_api_token, telegram_channel, new_tweet)
           logger.info 'Success to post.'
           last_tweet = new_tweet
         else
@@ -69,7 +81,7 @@ if __FILE__ == $PROGRAM_NAME
         logger.info "Already posted. #{new_tweet.split.join('')}"
       end
     end
-    HTTP.get healthchecks_url if healthchecks_url
+    sleep 60 until healthcheck(healthchecks_url)
     sleep 900 # 15 minutes
   end
 end
