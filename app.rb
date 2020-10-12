@@ -28,6 +28,31 @@ def filter_tweets(tweets, tags)
   end
 end
 
+def get_combined_tweets(filtered_tweets, user)
+  if !is_reply_tweet(filter_tweets[0]) then
+    return filter_tweets[0]
+  end
+
+  combined = ''
+  filter_tweets.each do |tweet|
+    is_reply = is_reply_tweet tweet
+    combined += clean_tweet(tweet, user)
+    if !is_reply then
+      break
+    end
+  end
+  return combined
+end
+
+def is_reply_tweet(tweet)
+  tweet.include? 'Replying to'
+end
+
+def clean_tweet(dirty_tweet, user)
+  clean_regex = Regexp.new "^Replying to[\\n\s]*@#{user}"
+  dirty_tweet.gsub(clean_regex, '').strip
+end
+
 def post_telegram(api_token, chat_id, text)
   JSON.parse(HTTP.post("https://api.telegram.org/bot#{api_token}/sendMessage", json: {
                          chat_id: chat_id,
@@ -69,7 +94,7 @@ if __FILE__ == $PROGRAM_NAME
     if filtered_tweets.empty?
       logger.info 'No tweets.'
     else
-      new_tweet = filtered_tweets[0]
+      new_tweet = get_combined_tweets(filter_tweets)
       if last_tweet != new_tweet
         if post_telegram(telegram_api_token, telegram_channel, new_tweet)
           logger.info 'Success to post.'
