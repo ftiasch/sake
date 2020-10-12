@@ -28,20 +28,16 @@ def filter_tweets(tweets, tags)
   end
 end
 
-def get_combined_tweets(filtered_tweets, user)
-  if !is_reply_tweet(filter_tweets[0]) then
-    return filter_tweets[0]
-  end
+def get_combined_tweets(_filtered_tweets, user)
+  return filter_tweets[0] unless is_reply_tweet(filter_tweets[0])
 
   combined = ''
   filter_tweets.each do |tweet|
     is_reply = is_reply_tweet tweet
     combined += clean_tweet(tweet, user)
-    if !is_reply then
-      break
-    end
+    break unless is_reply
   end
-  return combined
+  combined
 end
 
 def is_reply_tweet(tweet)
