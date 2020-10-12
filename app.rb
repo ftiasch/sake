@@ -28,18 +28,21 @@ def filter_tweets(tweets, tags)
   end
 end
 
-def concat_tweets(tweets, user)
+def concat_tweets(tweets, user, tags)
   index = tweets.index { |t| !reply?(t) }
-  tweets[0..index].map { |t| strip_reply t, user }.reverse.join("\n")
+  tweets[0..index].reverse.each_with_index.map { |t, i| clean t, i, user, tags }.join("\n")
 end
 
 def reply?(tweet)
   tweet.include? 'Replying to'
 end
 
-def strip_reply(dirty_tweet, user)
-  clean_regex = Regexp.new "^Replying to[\\n\s]*@#{user}"
-  dirty_tweet.gsub(clean_regex, '').strip
+def clean(tweet, index, user, tags)
+  return tweet if index.zero?
+
+  tweet = tweet.clone
+  tags.each { |t| tweet.gsub!(t, '') }
+  tweet.gsub(Regexp.new("^Replying to[\\n\s]*@#{user}"), '').strip
 end
 
 def post_telegram(api_token, chat_id, text)
@@ -69,6 +72,7 @@ if __FILE__ == $PROGRAM_NAME
 
   config = YAML.safe_load File.open('config.yaml').read
   twitter_user = config['twitter_user']
+  twitter_tags = config['twitter_tags']
   telegram_api_token = ENV['SAKE_TELEGRAM_API_TOKEN']
   telegram_channel = json_parse(ENV['SAKE_TELEGRAM_CHANNEL_JSON']) || config['telegram_channel']
   unless telegram_api_token
@@ -80,11 +84,11 @@ if __FILE__ == $PROGRAM_NAME
   last_tweet = nil
   loop do
     tweets = fetch_tweets(twitter_user)
-    filtered_tweets = filter_tweets(tweets, config['twitter_tags'])
+    filtered_tweets = filter_tweets(tweets, twitter_tags)
     if filtered_tweets.empty?
       logger.info 'No tweets.'
     else
-      new_tweet = concat_tweets(filtered_tweets, twitter_user)
+      new_tweet = concat_tweets(filtered_tweets, twitter_user, twitter_tags)
       if last_tweet != new_tweet
         if post_telegram(telegram_api_token, telegram_channel, new_tweet)
           logger.info 'Success to post.'
