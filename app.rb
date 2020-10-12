@@ -28,23 +28,16 @@ def filter_tweets(tweets, tags)
   end
 end
 
-def get_combined_tweets(_filtered_tweets, user)
-  return filter_tweets[0] unless is_reply_tweet(filter_tweets[0])
-
-  combined = ''
-  filter_tweets.each do |tweet|
-    is_reply = is_reply_tweet tweet
-    combined += clean_tweet(tweet, user)
-    break unless is_reply
-  end
-  combined
+def concat_tweets(tweets, user)
+  index = tweets.index { |t| !reply?(t) }
+  tweets[0..index].map { |t| strip_reply t, user }.reverse.join("\n")
 end
 
-def is_reply_tweet(tweet)
+def reply?(tweet)
   tweet.include? 'Replying to'
 end
 
-def clean_tweet(dirty_tweet, user)
+def strip_reply(dirty_tweet, user)
   clean_regex = Regexp.new "^Replying to[\\n\s]*@#{user}"
   dirty_tweet.gsub(clean_regex, '').strip
 end
@@ -75,6 +68,7 @@ if __FILE__ == $PROGRAM_NAME
   logger.level = Logger::INFO
 
   config = YAML.safe_load File.open('config.yaml').read
+  twitter_user = config['twitter_user']
   telegram_api_token = ENV['SAKE_TELEGRAM_API_TOKEN']
   telegram_channel = json_parse(ENV['SAKE_TELEGRAM_CHANNEL_JSON']) || config['telegram_channel']
   unless telegram_api_token
@@ -85,12 +79,12 @@ if __FILE__ == $PROGRAM_NAME
 
   last_tweet = nil
   loop do
-    tweets = fetch_tweets(config['twitter_user'])
+    tweets = fetch_tweets(twitter_user)
     filtered_tweets = filter_tweets(tweets, config['twitter_tags'])
     if filtered_tweets.empty?
       logger.info 'No tweets.'
     else
-      new_tweet = get_combined_tweets(filter_tweets)
+      new_tweet = concat_tweets(filtered_tweets, twitter_user)
       if last_tweet != new_tweet
         if post_telegram(telegram_api_token, telegram_channel, new_tweet)
           logger.info 'Success to post.'
