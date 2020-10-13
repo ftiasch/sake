@@ -48,7 +48,7 @@ class Twitter
     ts = tweets.dup
     ts.filter!(&:tagged?)
     i = ts.index(&:not_reply?)
-    return ts[0] if i.zeros?
+    return ts[0] if i.zero?
     [ts[i], *ts[0..i - 1].reverse.map(&:strip_reply)].join("\n")
   end
 
