@@ -42,11 +42,41 @@ class TestTwitter < Test::Unit::TestCase
 end
 
 class TestTelegram < Test::Unit::TestCase
-  def setup
-    @telegram = Telegram.new ENV['SAKE_TELEGRAM_API_TOKEN'], '@sake_test_channel'
+  class FakeTelegram < Telegram
+    attr_reader :posted
+
+    def initialize(post_first)
+      super post_first, nil, nil
+      @posted = 0
+    end
+
+    def perform_post(_msg)
+      @posted += 1
+    end
+  end
+
+  def test_post_first_true
+    telegram = FakeTelegram.new true
+    telegram.post 'A'
+    assert_equal telegram.posted, 1
+    telegram.post 'A'
+    assert_equal telegram.posted, 1
+    telegram.post 'B'
+    assert_equal telegram.posted, 2
+  end
+
+  def test_post_first_false
+    telegram = FakeTelegram.new false
+    telegram.post 'A'
+    assert_equal telegram.posted, 0
+    telegram.post 'A'
+    assert_equal telegram.posted, 0
+    telegram.post 'B'
+    assert_equal telegram.posted, 1
   end
 
   # def test_post
-  #   @telegram.post 'test message'
+  #   telegram = Telegram.new ENV['SAKE_TELEGRAM_API_TOKEN'], '@sake_test_channel'
+  #   telegram.post 'test message'
   # end
 end
