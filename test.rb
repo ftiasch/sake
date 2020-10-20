@@ -47,11 +47,18 @@ class TestTelegram < Test::Unit::TestCase
 
     def initialize(post_first)
       super post_first, nil, nil
+      @success = true
       @posted = 0
     end
 
     def perform_post(_msg)
-      @posted += 1
+      @posted += 1 if @success
+    end
+
+    def failure
+      @success = false
+      yield
+      @success = true
     end
   end
 
@@ -63,6 +70,18 @@ class TestTelegram < Test::Unit::TestCase
     assert_equal telegram.posted, 1
     telegram.post 'B'
     assert_equal telegram.posted, 2
+    telegram.post nil
+    assert_equal telegram.posted, 2
+  end
+
+  def test_post_fail
+    telegram = FakeTelegram.new true
+    telegram.failure do
+      telegram.post 'A'
+    end
+    assert_equal telegram.posted, 0
+    telegram.post 'A'
+    assert_equal telegram.posted, 1
   end
 
   def test_post_first_false
