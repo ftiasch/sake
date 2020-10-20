@@ -39,6 +39,7 @@ if __FILE__ == $PROGRAM_NAME
   loop do
     tweets = twitter.fetch
     new_tweet = twitter.last_tweet tweets
+    logger.info "Got #{new_tweet}"
     telegram.post new_tweet
     healthchecks.check
     sleep 900 # 15 minutes
