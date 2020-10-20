@@ -36,7 +36,8 @@ class TestTwitter < Test::Unit::TestCase
   end
 
   def test_last_tweet
-    puts @twitter.last_tweet [@tweets[0], @tweets[2], @tweets[3], @tweets[1]]
+    assert_not_nil @twitter.last_tweet [@tweets[0], @tweets[2], @tweets[3], @tweets[1]]
+    assert_nil @twitter.last_tweet [@tweets[0]]
   end
 end
 

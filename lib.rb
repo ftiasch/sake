@@ -48,7 +48,9 @@ class Twitter
     ts = tweets.dup
     ts.filter!(&:tagged?)
     i = ts.index(&:not_reply?)
+    return unless i
     return ts[0] if i.zero?
+
     [ts[i], *ts[0..i - 1].reverse.map(&:strip_reply)].join("\n")
   end
 
@@ -77,8 +79,10 @@ class Telegram
   end
 
   def post(msg)
+    return unless msg
     return if @last_msg == msg
     return if (@post_first || @last_msg) && !perform_post(msg)
+
     @last_msg = msg
   end
 end

@@ -38,12 +38,8 @@ if __FILE__ == $PROGRAM_NAME
   healthchecks = Healthchecks.new healthchecks_url
   loop do
     tweets = twitter.fetch
-    if tweets.empty?
-      logger.info 'No tweets.'
-    else
-      new_tweet = twitter.last_tweet tweets
-      telegram.post new_tweet
-    end
+    new_tweet = twitter.last_tweet tweets
+    telegram.post new_tweet
     healthchecks.check
     sleep 900 # 15 minutes
   end
