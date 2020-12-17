@@ -3,7 +3,7 @@
 require 'http'
 require 'nokogiri'
 
-class Twitter
+class TwitterBase
   class Tweet < String
     def initialize(user, tags, tweet)
       @user = user
@@ -37,9 +37,13 @@ class Twitter
     @tags = tags
   end
 
+  # def fetch_tweets
+  #   html = HTTP[user_agent: USER_AGENT].follow.get("https://twitter.com/#{@user}").to_s
+  #   Nokogiri::HTML(html).css('.tweet-container')
+  # end
+
   def fetch
-    html = HTTP[user_agent: USER_AGENT].follow.get("https://twitter.com/#{@user}").to_s
-    Nokogiri::HTML(html).css('.tweet-container').map { |t| make_tweet t.text.strip }
+    fetch_tweets.map { |t| make_tweet t.text.strip }
   rescue StandardError
     []
   end
@@ -58,7 +62,13 @@ class Twitter
     Tweet.new @user, @tags, tweet
   end
 
-  USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.854.0 Safari/535.2'
+  # USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.2 (KHTML, like Gecko) Chrome/15.0.854.0 Safari/535.2'
+end
+
+class Twitter < TwitterBase
+  def fetch_tweets
+    raise
+  end
 end
 
 class Telegram
